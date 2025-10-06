@@ -1,0 +1,49 @@
+trigger:
+- main
+
+resources:
+- repo: self
+
+variables:
+  dockerRegistryServiceConnection: 'b7697af7-b180-4ac7-bbba-b025f0d3bcdd'
+  imageRepository: 'pawfectfindfrontend'
+  containerRegistry: 'pawfectfind.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+  webAppName: 'pawfectfind'
+  resourceGroup: 'PawfectFind-RG'
+  azureSubscription: 'pawfectfind-azure'
+
+stages:
+- stage: Build
+  displayName: Build and push
+  jobs:
+  - job: Build
+    pool: Default  # Simple approach
+    steps:
+    - task: Docker@2
+      displayName: Build and push
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+          latest
+
+- stage: Deploy
+  displayName: Deploy
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: Deploy
+    pool: Default  # Simple approach
+    steps:
+    - task: AzureWebAppContainer@1
+      displayName: Deploy to Web App
+      inputs:
+        azureSubscription: '$(azureSubscription)'
+        appName: '$(webAppName)'
+        containers: '$(containerRegistry)/$(imageRepository):$(tag)'
+        resourceGroupName: '$(resourceGroup)'
