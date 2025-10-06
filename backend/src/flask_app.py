@@ -11,14 +11,17 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# TEST ROUTE - Add this at the very top
-@app.route('/test')
-def test():
-    return "Flask is working!"
+# Add this after creating the Flask app
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    """Serve the React frontend for all non-API routes"""
+    if path.startswith('api/'):
+        # Let API routes be handled by their respective functions
+        pass
+    else:
+        return send_from_directory(app.static_folder, path)
 
-# Serve frontend files from the frontend folder
-app = Flask(__name__, static_folder='./frontend', static_url_path='')
-    
 # Configure CORS properly
 CORS(app, resources={
     r"/api/*": {

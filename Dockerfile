@@ -28,11 +28,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy backend application code
-COPY . .
+# Copy backend application code from backend/src/
+COPY backend/src/ ./
 
-# Copy frontend files (ADDED)
-COPY frontend/ ./frontend/
+# Copy frontend application code from frontend/src/
+COPY frontend/src/ ./frontend/
 
 # Use port 8000 for Azure 
 EXPOSE 8000
