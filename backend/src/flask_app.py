@@ -15,6 +15,9 @@ app = Flask(__name__)
 @app.route('/test')
 def test():
     return "Flask is working!"
+
+# Serve frontend files from the frontend folder
+app = Flask(__name__, static_folder='./frontend', static_url_path='')
     
 # Configure CORS properly
 CORS(app, resources={
