@@ -15,18 +15,25 @@ app = Flask(__name__, static_folder='./frontend')
 # SPECIFIC ROUTE FOR ROOT - Serve index.html for '/'
 @app.route('/')
 def serve_index():
-    return send_file('./frontend/index.html')
+    return send_from_directory(app.static_folder, 'index.html')
 
-# ROUTE FOR FRONTEND 
-@app.route('/', defaults={'path': ''})
+# ROUTE FOR FRONTEND (SPA support) — placed AFTER API routes is safest,
+# but this version also guards against /api/* being caught here.
 @app.route('/<path:path>')
 def serve_frontend(path):
     """Serve the React frontend for all non-API routes"""
+    # If someone hits an /api/* path and no API route matched more specifically,
+    # we return 404 here so this catch-all doesn't swallow API routes.
     if path.startswith('api/'):
-        # Let API routes be handled by their respective functions
-        pass
-    else:
+        abort(404)
+
+    # If a real static file exists (e.g., /index.html, /assets/app.js), serve it
+    full_path = os.path.join(app.static_folder, path)
+    if os.path.exists(full_path) and os.path.isfile(full_path):
         return send_from_directory(app.static_folder, path)
+
+    # Otherwise, fall back to index.html so the front-end router can handle it
+    return send_from_directory(app.static_folder, 'index.html')
 
 # Configure CORS properly
 CORS(app, resources={
