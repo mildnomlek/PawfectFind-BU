@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmation - PawfectFind</title>
+    <link rel="stylesheet" href="./style/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Add Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <script>
+        // Firebase Configuration - Use your actual config from your teammate
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7K7u4qUTI9C5kOr4dUe6ND6EfnxeXU-Y",
+            authDomain: "pawfectfind-cc73e.firebaseapp.com",
+            projectId: "pawfectfind-cc73e",
+            storageBucket: "pawfectfind-cc73e.firebasestorage.app",
+            messagingSenderId: "9138302822",
+            appId: "1:9138302822:web:945e4e5e46e1a7b0f7a2a7"
+        };
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+    </script>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">
+                <img src="images/PawfectFind_logo.png" alt="PawfectFind Logo" class="logo-img">
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="services.html">Services</a></li>
+                    <li><a href="providers.html">Providers</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+                <div class="header-actions">
+                    <a href="login.html" class="user-icon" id="userIcon">
+                        <i class="fas fa-user"></i>
+                        <span id="userStatus" style="display: none;"></span>
+                    </a>
+                </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="booking-confirmation">
+                <!-- Booking Details Section -->
+                <div class="confirmation-header">
+                    <i class="fas fa-calendar-check"></i>
+                    <h1>Confirm Your Booking</h1>
+                    <p>Review your booking details before proceeding to payment</p>
+                </div>
+                
+                <div class="booking-details">
+                    <h2>Booking Details</h2>
+                    <div id="bookingDetails">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+
+                <!-- Customer Information Section (No Login Required) -->
+                <div class="customer-info">
+                    <h2>Your Information</h2>
+                    <form id="customerForm">
+                        <div class="form-group">
+                            <label for="customerName">Full Name *</label>
+                            <input type="text" id="customerName" name="customerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="customerEmail">Email Address *</label>
+                            <input type="email" id="customerEmail" name="customerEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="customerPhone">Phone Number *</label>
+                            <input type="tel" id="customerPhone" name="customerPhone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="specialInstructions">Special Instructions (Optional)</label>
+                            <textarea id="specialInstructions" name="specialInstructions" rows="3" placeholder="Any special requirements for your pet..."></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Payment Section -->
+                <div id="paymentSection" class="payment-section">
+                    <h2>Payment</h2>
+                    <div class="payment-amount">
+                        <strong>Total Amount: <span id="totalAmount"></span></strong>
+                    </div>
+                    <button id="payButton" class="btn btn-primary">
+                        <i class="fas fa-credit-card"></i> Proceed to Payment
+                    </button>
+                    
+                    <!-- Payment Confirmation Section -->
+                    <div id="paymentConfirmation" style="display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; border: 2px dashed #007bff;">
+                        <h4>💳 Ready to Confirm</h4>
+                        <p>Review your information and confirm your booking</p>
+                        <button id="submitPayment" class="btn btn-success" style="margin-top: 15px;">
+                            <i class="fas fa-lock"></i> Confirm Payment & Complete Booking
+                        </button>
+                    </div>
+                </div>
+
+                <div class="confirmation-actions">
+                    <button onclick="window.location.href='index.html'" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Home
+                    </button>
+                    <button onclick="window.print()" class="btn btn-outline">
+                        <i class="fas fa-print"></i> Print Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-check-circle success-icon"></i>
+                <h2>Booking Confirmed!</h2>
+            </div>
+            <div class="modal-body">
+                <p>Your booking has been successfully confirmed and payment processed.</p>
+                <p>You will receive a confirmation email shortly.</p>
+                <div id="bookingReference" class="booking-ref"></div>
+            </div>
+            <div class="modal-actions">
+                <button onclick="closeModal()" class="btn btn-primary">Done</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // API Configuration
+    const API_BASE_URL = window.location.hostname.includes('azurewebsites.net') 
+        ? 'https://pawfectfind-backend.azurewebsites.net' 
+        : 'http://localhost:8000';
+
+    // ===== FIREBASE AUTH FUNCTIONS =====
+    async function getCurrentFirebaseUser() {
+        return new Promise((resolve) => {
+            const unsubscribe = auth.onAuthStateChanged((user) => {
+                unsubscribe();
+                resolve(user);
+            });
+        });
+    }
+
+    async function checkUserLoggedIn() {
+        const user = await getCurrentFirebaseUser();
+        if (!user) {
+            alert('Please log in to make a booking');
+            window.location.href = 'login.html';
+            return false;
+        }
+        return true;
+    }
+
+    // Get booking details from URL parameters or localStorage
+    let bookingData = {};
+    
+    // Try to get from URL first, then localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('service')) {
+        // From URL parameters
+        bookingData = {
+            service: urlParams.get('service'),
+            vendor: urlParams.get('vendor'),
+            vendorId: urlParams.get('vendorId'),
+            date: urlParams.get('date'),
+            time: urlParams.get('time'),
+            price: urlParams.get('price')
+        };
+        // Save to localStorage for persistence
+        Object.keys(bookingData).forEach(key => {
+            if (bookingData[key]) {
+                localStorage.setItem(`booking${key.charAt(0).toUpperCase() + key.slice(1)}`, bookingData[key]);
+            }
+        });
+    } else {
+        // From localStorage (from index.html booking flow)
+        bookingData = {
+            service: localStorage.getItem('bookingService'),
+            vendor: localStorage.getItem('bookingVendor'),
+            vendorId: localStorage.getItem('bookingVendorId'),
+            date: localStorage.getItem('bookingDate'),
+            time: localStorage.getItem('bookingTime'),
+            price: localStorage.getItem('bookingPrice')
+        };
+    }
+
+    // If no booking data, use demo data
+    if (!bookingData.service && !bookingData.vendor) {
+        console.log('No booking data found, using demo data');
+        bookingData = {
+            service: "Pet Grooming",
+            vendor: "Demo Pet Spa", 
+            vendorId: "demo",
+            date: "2025-10-02",
+            time: "02:00 PM",
+            price: "From $55"
+        };
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+        displayBookingDetails();
+        setupEventListeners();
+    });
+
+    function displayBookingDetails() {
+        const bookingDetailsEl = document.getElementById('bookingDetails');
+        if (!bookingDetailsEl) return;
+
+        bookingDetailsEl.innerHTML = `
+            <div class="detail-item">
+                <strong>Service:</strong> <span>${bookingData.service || 'Not specified'}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Vendor:</strong> <span>${bookingData.vendor || 'Not specified'}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Date:</strong> <span>${formatDate(bookingData.date)}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Time:</strong> <span>${bookingData.time || 'Not specified'}</span>
+            </div>
+            <div class="detail-item">
+                <strong>Amount:</strong> <span>${bookingData.price || 'Not specified'}</span>
+            </div>
+        `;
+        
+        // Update total amount
+        const totalAmountEl = document.getElementById('totalAmount');
+        if (totalAmountEl && bookingData.price) {
+            totalAmountEl.textContent = bookingData.price;
+        }
+    }
+
+    function formatDate(dateString) {
+        if (!dateString) return 'Not specified';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-SG', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    function setupEventListeners() {
+        const payButton = document.getElementById('payButton');
+        const submitPayment = document.getElementById('submitPayment');
+        
+        if (payButton) {
+            payButton.addEventListener('click', collectCustomerInfo);
+        }
+        
+        if (submitPayment) {
+            submitPayment.addEventListener('click', processPayment);
+        }
+    }
+
+    async function collectCustomerInfo() {
+        const form = document.getElementById('customerForm');
+        if (!form) return;
+
+        // Basic validation
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const formData = new FormData(form);
+        const customerInfo = {
+            name: formData.get('customerName'),
+            email: formData.get('customerEmail'),
+            phone: formData.get('customerPhone'),
+            instructions: formData.get('specialInstructions')
+        };
+
+        // Store customer info
+        localStorage.setItem('customerInfo', JSON.stringify(customerInfo));
+        
+        // Show payment confirmation section
+        const payButton = document.getElementById('payButton');
+        const paymentConfirmation = document.getElementById('paymentConfirmation');
+        
+        if (payButton) payButton.style.display = 'none';
+        if (paymentConfirmation) paymentConfirmation.style.display = 'block';
+    }
+
+        async function processPayment() {
+            try {
+                // Show processing state
+                const submitBtn = document.getElementById('submitPayment');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Payment...';
+                    submitBtn.disabled = true;
+                }
+
+                // Check if user is logged in
+                const isLoggedIn = await checkUserLoggedIn();
+                if (!isLoggedIn) return;
+
+                // Save booking to database first
+                await saveBookingToDatabase();
+                
+                // Then show success
+                showSuccessModal();
+
+            } catch (error) {
+                console.error('Payment processing failed:', error);
+                alert('Payment failed: ' + error.message);
+                
+                // Reset button
+                const submitBtn = document.getElementById('submitPayment');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-lock"></i> Confirm Payment';
+                    submitBtn.disabled = false;
+                }
+            }
+        }
+
+async function saveBookingToDatabase() {
+    try {
+        const customerInfo = JSON.parse(localStorage.getItem('customerInfo') || '{}');
+        
+        // Get current Firebase user
+        const user = await getCurrentFirebaseUser();
+        if (!user) {
+            throw new Error('Please log in to make a booking');
+        }
+
+        // Extract numeric price from string (e.g., "$80" -> 80.00)
+        const priceMatch = bookingData.price?.match(/\$?(\d+(\.\d+)?)/);
+        const numericPrice = priceMatch ? parseFloat(priceMatch[1]) : 0;
+        
+        // Format date for database (YYYY-MM-DD)
+        const bookingDate = new Date(bookingData.date);
+        const formattedDate = bookingDate.toISOString().split('T')[0];
+        
+        const bookingPayload = {
+            user_id: user.uid, // ← Firebase User ID
+            service_type: bookingData.service,
+            vendor_name: bookingData.vendor,
+            booking_date: formattedDate,
+            booking_time: bookingData.time,
+            price: numericPrice,
+            customer_name: customerInfo.name,
+            customer_email: customerInfo.email,
+            customer_phone: customerInfo.phone,
+            special_instructions: customerInfo.instructions
+        };
+
+        console.log('💾 Saving booking for Firebase user:', user.uid);
+
+        const response = await fetch(`${API_BASE_URL}/api/bookings`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(bookingPayload)
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to save booking to database');
+        }
+
+        const result = await response.json();
+        console.log('✅ Booking saved to database for user:', user.uid);
+        return result;
+
+    } catch (error) {
+        console.error('❌ Error saving booking:', error);
+        throw error;
+    }
+}
+
+function generateBookingId() {
+    return 'PF-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+}
+
+function showSuccessModal() {
+    // Get Firebase user for display
+    getCurrentFirebaseUser().then(user => {
+        const bookingRefEl = document.getElementById('bookingReference');
+        if (bookingRefEl) {
+            bookingRefEl.innerHTML = `
+                <strong>Booking Reference:</strong> ${generateBookingId()}<br>
+                <strong>User:</strong> ${user?.email || 'Logged in user'}<br>
+                <strong>Status:</strong> <span style="color: green;">✅ Saved to Database</span><br>
+                <small>This booking is now in your calendar</small>
+            `;
+        }
+    });
+    
+    const successModal = document.getElementById('successModal');
+    if (successModal) {
+        successModal.style.display = 'block';
+    }
+    
+    // Clear localStorage after successful booking
+    setTimeout(() => {
+        ['bookingService', 'bookingVendor', 'bookingVendorId', 'bookingDate', 'bookingTime', 'bookingPrice', 'customerInfo'].forEach(key => {
+            localStorage.removeItem(key);
+        });
+    }, 2000);
+}
+
+function closeModal() {
+    const successModal = document.getElementById('successModal');
+    if (successModal) {
+        successModal.style.display = 'none';
+    }
+    window.location.href = 'userdashboard.html'; // Redirect to dashboard to see the booking
+}
+</script>
+
+    <style>
+        .customer-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .payment-amount {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 18px;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .success-icon {
+            color: #28a745;
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .booking-ref {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: monospace;
+        }
+        
+        .confirmation-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        #paymentConfirmation {
+            display: none;
+        }
+    </style>
+</body>
+</html>

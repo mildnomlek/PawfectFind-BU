@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawfectFind - Premium Pet Services Marketplace in Singapore</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="./style/style.css">
+        <!-- Add Firebase Auth -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD7K7u4qUTI9C5kOr4dUe6ND6EfnxeXU-Y",
+            authDomain: "pawfectfind-cc73e.firebaseapp.com",
+            projectId: "pawfectfind-cc73e",
+            storageBucket: "pawfectfind-cc73e.firebasestorage.app",
+            messagingSenderId: "9138302822",
+            appId: "1:9138302822:web:945e4e5e46e1a7b0f7a2a7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Make auth available globally
+        window.firebaseAuth = auth;
+        
+        // Update user dropdown with actual user info
+        function updateUserDropdown(user) {
+            const userEmailElement = document.getElementById('userEmail');
+            const userDropdown = document.getElementById('userDropdown');
+            
+            if (user) {
+                // User is signed in
+                if (userEmailElement) {
+                    userEmailElement.textContent = user.email;
+                }
+                if (userDropdown) {
+                    userDropdown.innerHTML = `<i class="fas fa-user"></i> ${user.email.split('@')[0]}`;
+                    userDropdown.title = `Logged in as: ${user.email}`;
+                }
+                console.log('✅ User dropdown updated:', user.email);
+            } else {
+                // No user signed in
+                if (userEmailElement) {
+                    userEmailElement.textContent = 'Not logged in';
+                }
+                if (userDropdown) {
+                    userDropdown.innerHTML = '<i class="fas fa-user"></i> Account';
+                }
+                console.log('❌ No user signed in');
+            }
+        }
+        
+        // Logout function
+        function logoutUser() {
+            auth.signOut().then(() => {
+                console.log('✅ User signed out');
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                console.error('❌ Logout error:', error);
+                alert('Logout failed: ' + error.message);
+            });
+        }
+        
+        // Auth state listener
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('🔥 User signed in:', user.email);
+                window.currentFirebaseUser = user;
+                updateUserDropdown(user);
+                
+                // Update page title with user's name
+                const pageTitle = document.querySelector('.page-title');
+                if (pageTitle) {
+                    const userName = user.displayName || user.email.split('@')[0];
+                    pageTitle.textContent = `${userName}'s Dashboard`;
+                }
+            } else {
+                console.log('❌ No user signed in');
+                updateUserDropdown(null);
+                // Optional: Redirect to login page
+                // window.location.href = 'login.html';
+            }
+        });
+        
+        // Make logout function available globally
+        window.logoutUser = logoutUser;
+    </script>
+
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="index.html" class="logo">
+                <img src="images/PawfectFind_logo.png" alt="PawfectFind Logo" 
+                    class="logo-img">
+            </a>
+            <nav>
+                <ul>
+                    <li><a href="index.html" class="active">Home</a></li>
+                    <li><a href="services.html">Services</a></li>
+                    <li><a href="providers.html">Providers</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                <div class="cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge">2</span>
+                </div>
+                    <div class="user-dropdown">
+                        <a href="#" class="user-icon" id="userDropdown">
+                            <i class="fas fa-user"></i>
+                        </a>
+                        <div class="dropdown-content" id="dropdownContent">
+                            <span id="userEmail">Loading...</span>
+                            <a href="#" id="logoutBtn">Logout</a>
+                        <div class="dropdown-content" id="dropdownContent">
+                        <a class="dropdown-item" href="login.html" id="loginLink" style="display: none;">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- React Booking System will be rendered here -->
+    <div id="root"></div>
+
+    <!--<section class="page-header">
+        <div class="container">
+            <h1 class="page-title">Singapore's Premier Pet Services Marketplace</h1>
+            <p class="breadcrumb">
+                <a href="index.html">Home</a> / Welcome
+            </p>
+        </div>
+    </section>-->
+
+    <main class="main-content">
+        <div class="container">
+            <h2 class="section-title">Featured Services</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-img" style="background-image: url('https://images.unsplash.com/photo-1525253013412-55c1a69a5738?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80')">
+                        <div class="service-badge">Most Popular</div>
+                    </div>
+                    <div class="service-content">
+                        <h3 class="service-title">Premium Pet Grooming</h3>
+                        <p class="service-desc">Professional grooming services with certified groomers across Singapore.</p>
+                        <ul class="service-features">
+                            <li>Full wash & dry service</li>
+                            <li>Nail trimming & ear cleaning</li>
+                            <li>Professional styling</li>
+                            <li>Flea & tick treatment</li>
+                        </ul>
+                        <div class="service-footer">
+                            <div class="service-price">From $45</div>
+                            <a href="booking.html?service=grooming" class="btn btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-img" style="background-image: url('https://images.unsplash.com/photo-1596272875729-ed2ff7d6d9c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80')">
+                        <div class="service-badge">Trusted</div>
+                    </div>
+                    <div class="service-content">
+                        <h3 class="service-title">Reliable Pet Sitting</h3>
+                        <p class="service-desc">Experienced pet sitters for day care or overnight stays in your home.</p>
+                        <ul class="service-features">
+                            <li>Background-checked sitters</li>
+                            <li>Daily photo updates</li>
+                            <li>Exercise & playtime</li>
+                            <li>Emergency care support</li>
+                        </ul>
+                        <div class="service-footer">
+                            <div class="service-price">From $30/day</div>
+                            <a href="booking.html?service=sitting" class="btn btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="service-card">
+                    <div class="service-img" style="background-image: url('https://images.unsplash.com/photo-1450778869180-41d0601e046e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1155&q=80')">
+                        <div class="service-badge">Luxury</div>
+                    </div>
+                    <div class="service-content">
+                        <h3 class="service-title">Premium Pet Hotels</h3>
+                        <p class="service-desc">5-star boarding facilities with round-the-clock care and supervision.</p>
+                        <ul class="service-features">
+                            <li>Climate-controlled suites</li>
+                            <li>24/7 veterinary support</li>
+                            <li>Daily exercise programs</li>
+                            <li>Gourmet meal service</li>
+                        </ul>
+                        <div class="service-footer">
+                            <div class="service-price">From $60/night</div>
+                            <a href="booking.html?service=hotel" class="btn btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin: 50px 0;">
+                <a href="services.html" class="btn btn-secondary">View All Services</a>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>PawfectFind</h3>
+                    <p>Singapore's most trusted pet services marketplace connecting pet parents with verified professionals.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Services</h3>
+                    <ul>
+                        <li><a href="booking.html?service=grooming">Pet Grooming</a></li>
+                        <li><a href="booking.html?service=sitting">Pet Sitting</a></li>
+                        <li><a href="booking.html?service=hotel">Pet Hotels</a></li>
+                        <li><a href="booking.html?service=training">Pet Training</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="providers.html">Service Providers</a></li>
+                        <li><a href="contact.html">Contact Us</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Info</h3>
+                    <ul>
+                        <li><i class="fas fa-phone"></i> +65 6123 4567</li>
+                        <li><i class="fas fa-envelope"></i> hello@pawfectfind.sg</li>
+                        <li><i class="fas fa-map-marker-alt"></i> 123 Pet Road, Singapore 123456</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 PawfectFind. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- React Booking System Component -->
+    <!-- React and Babel Scripts -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Enhanced React Booking System Component -->
+    <script type="text/babel">
+        const API_BASE_URL = window.location.hostname.includes('azurewebsites.net') 
+            ? 'https://pawfectfind-backend.azurewebsites.net' 
+            : 'http://localhost:8000';
+        
+        const { useState, useEffect } = React;
+
+const MOCK_VENDORS = [
+    {
+        id: "paws",
+        name: "Happy Paws Grooming",
+        rating: 4.8,
+        services: ["Grooming", "Bath", "Nail Trimming"],
+        price: "From $45",
+        location: "Central Singapore",  // ← Added missing comma here
+        availableSlots: {
+            "2025-09-29": ["09:00 AM", "10:00 AM", "02:00 PM", "03:00 PM"],
+            "2025-09-30": ["09:00 AM", "11:00 AM", "02:00 PM"],
+            "2025-10-01": ["10:00 AM", "02:00 PM", "03:00 PM"]
+        },
+        isAvailable: true
+    },
+    {
+        id: "happy",
+        name: "Happy Tails Pet Hotel",
+        rating: 4.9,
+        services: ["Pet Hotel", "Daycare", "Grooming"],
+        price: "From $60/night",
+        location: "East Singapore",
+        availableSlots: {
+            "2025-09-29": ["09:00 AM", "11:00 AM", "02:00 PM"],
+            "2025-09-30": ["10:00 AM", "02:00 PM", "04:00 PM"],
+            "2025-10-01": ["09:00 AM", "11:00 AM", "03:00 PM"]
+        },
+        isAvailable: true
+    },
+    {
+        id: "paradise",
+        name: "Professional Pet Sitters",
+        rating: 4.7,
+        services: ["Sitter", "Walking", "Feeding"],
+        price: "From $30/visit",
+        location: "Nationwide",
+        availableSlots: {
+            "2025-09-29": ["10:00 AM", "02:00 PM", "05:00 PM"],
+            "2025-09-30": ["09:00 AM", "03:00 PM", "05:00 PM"],
+            "2025-10-01": ["10:00 AM", "02:00 PM", "04:00 PM"]
+        },
+        isAvailable: true
+    },
+    {
+        id: "elite",
+        name: "Elite Pet Training",
+        rating: 4.6,
+        services: ["Training", "Behavior Modification"],
+        price: "From $80/session",
+        location: "Central Singapore",
+        availableSlots: {
+            "2025-09-29": ["09:00 AM", "11:00 AM", "03:00 PM"],
+            "2025-09-30": ["10:00 AM", "02:00 PM", "04:00 PM"],
+            "2025-10-01": ["09:00 AM", "11:00 AM", "03:00 PM"]
+        },
+        isAvailable: true
+    }
+];
+
+        const PetServicesApp = () => {
+            // Step 1: Basic Information
+            const [petType, setPetType] = useState('');
+            const [location, setLocation] = useState('');
+            const [petService, setPetService] = useState('');
+            
+            // Step 2: Date & Time
+            const [selectedDate, setSelectedDate] = useState('');
+            const [selectedTime, setSelectedTime] = useState('');
+            
+            // Step 3: Vendor Selection
+            const [selectedVendor, setSelectedVendor] = useState(null);
+            const [vendors, setVendors] = useState([]);
+            const [filteredVendors, setFilteredVendors] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [searchCompleted, setSearchCompleted] = useState(false);
+            
+            // UI States
+            const [showPetDropdown, setShowPetDropdown] = useState(false);
+            const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+            const [showServiceDropdown, setShowServiceDropdown] = useState(false);
+            const [showCalendar, setShowCalendar] = useState(false);
+            const [showTimePicker, setShowTimePicker] = useState(false);
+            // Update the step tracking logic
+            const [currentStep, setCurrentStep] = useState(1); // 1: Basic, 2: DateTime, 3: Results
+            
+            // Add this function to determine step completion
+            const getStepStatus = (stepNumber) => {
+                if (stepNumber < currentStep) return 'completed';
+                if (stepNumber === currentStep) return 'active';
+                return '';
+            };
+
+            // Calendar state
+            const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+            const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+            const petTypes = ['Dogs', 'Cats', 'Rabbits', 'Hamsters', 'Guinea Pigs', 'Chinchillas', 'Ferrets', 'Birds', 'Turtles', 'Iguanas'];
+            const locations = ['Central (District 1-2)', 'West (District 5-8, 22-23)', 'East (District 14-18)', 'North (District 19-21, 26-28)', 'South (District 3-4, 9-10)', 'North-East (District 11-13, 24-25)'];
+            const services = ['Grooming', 'Sitter', 'Pet Hotel', 'Training'];
+
+            // Fetch vendors from backend on component mount
+            useEffect(() => {
+                const fetchVendors = async () => {
+                    setLoading(true);
+                    try {
+                        console.log('Attempting to fetch vendors from API...');
+                        const response = await fetch(`${API_BASE_URL}/api/vendors`, {
+                            method: 'GET',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            },
+                            mode: 'cors'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        
+                        const data = await response.json();
+                        console.log('Successfully fetched vendors from API');
+                        console.log('API Response:', data);
+                        console.log('First vendor availability field:', data[0]?.availableSlots ? 'availableSlots' : 'availability');
+                        setVendors(data);
+                    } catch (error) {
+                        console.log('API fetch failed, using mock data instead');
+                        console.error('Error details:', error);
+                        setVendors(MOCK_VENDORS);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                fetchVendors();
+            }, []);
+
+            // Close dropdowns when clicking outside
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (!event.target.closest('.dropdown') && !event.target.closest('.datetime-picker')) {
+                        setShowPetDropdown(false);
+                        setShowLocationDropdown(false);
+                        setShowServiceDropdown(false);
+                        setShowCalendar(false);
+                        setShowTimePicker(false);
+                    }
+                };
+
+                document.addEventListener('click', handleClickOutside);
+                return () => document.removeEventListener('click', handleClickOutside);
+            }, []);
+
+            const toggleDropdown = (dropdown) => {
+                setShowPetDropdown(dropdown === 'pet' ? !showPetDropdown : false);
+                setShowLocationDropdown(dropdown === 'location' ? !showLocationDropdown : false);
+                setShowServiceDropdown(dropdown === 'service' ? !showServiceDropdown : false);
+                setShowCalendar(false);
+                setShowTimePicker(false);
+            };
+
+            const toggleCalendar = () => {
+                setShowCalendar(!showCalendar);
+                setShowTimePicker(false);
+            };
+
+            const toggleTimePicker = () => {
+                if (selectedDate) {
+                    setShowTimePicker(!showTimePicker);
+                    setShowCalendar(false);
+                }
+            };
+
+            const handleDateSelect = (day) => {
+                const dateStr = formatDate(day);
+                setSelectedDate(dateStr);
+                setSelectedTime('');
+                setShowCalendar(false);
+                setShowTimePicker(true);
+            };
+
+            const handleTimeSelect = (time) => {
+                setSelectedTime(time);
+                setShowTimePicker(false);
+            };
+
+            // Calendar functions
+            const getDaysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
+            const getFirstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
+            
+            const navigateMonth = (direction) => {
+                if (direction === 'prev') {
+                    setCurrentMonth(currentMonth === 0 ? 11 : currentMonth - 1);
+                    setCurrentYear(currentMonth === 0 ? currentYear - 1 : currentYear);
+                } else {
+                    setCurrentMonth(currentMonth === 11 ? 0 : currentMonth + 1);
+                    setCurrentYear(currentMonth === 11 ? currentYear + 1 : currentYear);
+                }
+            };
+            
+            const formatDate = (day) => `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
+
+                // Modify the searchVendors function to use mock data if API fails:
+                // Fix the searchVendors function:
+                const searchVendors = async () => {
+                    if (!petType || !location || !petService || !selectedDate || !selectedTime) {
+                        alert('Please complete all fields before searching');
+                        return;
+                    }
+
+                    setLoading(true);
+                    setSearchCompleted(false);
+                    
+                    try {
+                        // Filter vendors based on service type and availability
+                        const matchedVendors = vendors.filter(vendor => {
+                            // Check if vendor offers the selected service
+                            const hasService = vendor.services.some(service => 
+                                service.toLowerCase().includes(petService.toLowerCase())
+                            );
+                            
+                            // Check if vendor has availability for selected date and time
+                            const hasAvailability = vendor.availableSlots && 
+                                                vendor.availableSlots[selectedDate] && 
+                                                vendor.availableSlots[selectedDate].includes(selectedTime);
+                            
+                            return hasService && hasAvailability;
+                        });
+                        
+                        setFilteredVendors(matchedVendors);
+                        setSearchCompleted(true);
+                        setCurrentStep(3);
+                        
+                        if (matchedVendors.length === 0) {
+                            alert('No vendors available for your selected date and time. Please try different options.');
+                        }
+                        
+                    } catch (error) {
+                        console.error('Error searching vendors:', error);
+                        alert('Error searching for vendors. Please try again.');
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+
+            const resetSearch = () => {
+                setSearchCompleted(false);
+                setFilteredVendors([]);
+                setSelectedVendor(null);
+                setCurrentStep(1);
+            };
+
+            // Change to using URL param
+            const proceedToBooking = (vendor) => {
+                // Check if user is logged in
+                const auth = window.getAuth && window.getAuth();
+                const user = auth ? auth.currentUser : null;
+                
+                if (!user) {
+                    // User not logged in - encode booking data as URL parameters
+                    const bookingParams = new URLSearchParams({
+                        service: petService,
+                        vendor: vendor.name,
+                        vendorId: vendor.id,
+                        date: selectedDate,
+                        time: selectedTime,
+                        price: vendor.price,
+                        redirect: 'booking'
+                    });
+                    
+                    alert('Please log in to book a service.');
+                    window.location.href = `login.html?${bookingParams.toString()}`;
+                    return;
+                }
+                
+                // User is logged in - proceed with booking
+                window.location.href = `booking-confirmation.html?service=${encodeURIComponent(petService)}&vendor=${encodeURIComponent(vendor.name)}&vendorId=${encodeURIComponent(vendor.id)}&date=${encodeURIComponent(selectedDate)}&time=${encodeURIComponent(selectedTime)}&price=${encodeURIComponent(vendor.price)}`;
+            };
+
+            const renderCalendar = () => {
+                const daysInMonth = getDaysInMonth(currentMonth, currentYear);
+                const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
+                const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                
+                let days = [];
+                
+                // Add empty days for the first week
+                for (let i = 0; i < firstDay; i++) {
+                    days.push(<div key={`empty-${i}`} className="calendar-day other-month"></div>);
+                }
+                
+                // Add days of the month
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const dateStr = formatDate(day);
+                    const isSelected = selectedDate === dateStr;
+                    
+                    days.push(
+                        <div 
+                            key={day} 
+                            className={`calendar-day available ${isSelected ? 'selected' : ''}`}
+                            onClick={() => handleDateSelect(day)}
+                        >
+                            {day}
+                        </div>
+                    );
+                }
+                
+                return (
+                    <div className="calendar-popup">
+                        <div className="calendar-container">
+                            <div className="calendar-header">
+                                <button className="calendar-nav prev" onClick={() => navigateMonth('prev')}>
+                                    <i className="fas fa-chevron-left"></i>
+                                </button>
+                                <div className="calendar-month">
+                                    {monthNames[currentMonth]} {currentYear}
+                                </div>
+                                <button className="calendar-nav next" onClick={() => navigateMonth('next')}>
+                                    <i className="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                            
+                            <div className="calendar-grid">
+                                <div className="calendar-weekday">Sun</div>
+                                <div className="calendar-weekday">Mon</div>
+                                <div className="calendar-weekday">Tue</div>
+                                <div className="calendar-weekday">Wed</div>
+                                <div className="calendar-weekday">Thu</div>
+                                <div className="calendar-weekday">Fri</div>
+                                <div className="calendar-weekday">Sat</div>
+                                {days}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const renderTimePicker = () => {
+                const timeSlots = ['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM'];
+                
+                return (
+                    <div className="time-picker-popup">
+                        <div className="time-picker-container">
+                            <h4>Select Time Slot</h4>
+                            <div className="time-slots">
+                                {timeSlots.map((time, index) => (
+                                    <div 
+                                        key={index} 
+                                        className={`time-slot ${selectedTime === time ? 'selected' : ''}`}
+                                        onClick={() => handleTimeSelect(time)}
+                                    >
+                                        {time}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div>
+                    <section className="hero">
+                        <div className="container hero-content">
+                            <h1>Premium Pet Services Matching in Singapore</h1>
+                            <p>Find the best grooming, sitting, and hotel services for your beloved pets</p>
+                        </div>
+                    </section>
+
+                    <div className="container">
+                        <div className="search-section">
+                            <h2 className="search-title">Find the perfect service for your pet</h2>
+                            
+                            {/* Progress Steps */}
+                            <div className="progress-steps">
+                                <div className={`step ${getStepStatus(1)}`}>
+                                    <div className="step-number">1</div>
+                                    <div className="step-label">Basic Info</div>
+                                </div>
+                                <div className={`step ${getStepStatus(2)}`}>
+                                    <div className="step-number">2</div>
+                                    <div className="step-label">Date & Time</div>
+                                </div>
+                                <div className={`step ${getStepStatus(3)}`}>
+                                    <div className="step-number">3</div>
+                                    <div className="step-label">Choose Vendor</div>
+                                </div>
+                            </div>
+
+                            {/* Step 1: Basic Information */}
+                            {(currentStep === 1 || !searchCompleted) && (
+                                <div className="filters-grid">
+                                    <div className="filter-group">
+                                        <label>Pet Type *</label>
+                                        <div className="dropdown">
+                                            <div className="dropdown-select" onClick={(e) => { e.stopPropagation(); toggleDropdown('pet'); }}>
+                                                <span>{petType || 'Select pet type'}</span>
+                                                <i className={`fas fa-chevron-${showPetDropdown ? 'up' : 'down'}`}></i>
+                                            </div>
+                                            {showPetDropdown && (
+                                                <div className="dropdown-list show">
+                                                    {petTypes.map((pet, index) => (
+                                                        <div key={index} className="dropdown-item" onClick={() => { setPetType(pet); setShowPetDropdown(false); }}>
+                                                            {pet}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="filter-group">
+                                        <label>Location *</label>
+                                        <div className="dropdown">
+                                            <div className="dropdown-select" onClick={(e) => { e.stopPropagation(); toggleDropdown('location'); }}>
+                                                <span>{location || 'Select location'}</span>
+                                                <i className={`fas fa-chevron-${showLocationDropdown ? 'up' : 'down'}`}></i>
+                                            </div>
+                                            {showLocationDropdown && (
+                                                <div className="dropdown-list show">
+                                                    {locations.map((loc, index) => (
+                                                        <div key={index} className="dropdown-item" onClick={() => { setLocation(loc); setShowLocationDropdown(false); }}>
+                                                            {loc}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="filter-group">
+                                        <label>Pet Service *</label>
+                                        <div className="dropdown">
+                                            <div className="dropdown-select" onClick={(e) => { e.stopPropagation(); toggleDropdown('service'); }}>
+                                                <span>{petService || 'Select service'}</span>
+                                                <i className={`fas fa-chevron-${showServiceDropdown ? 'up' : 'down'}`}></i>
+                                            </div>
+                                            {showServiceDropdown && (
+                                                <div className="dropdown-list show">
+                                                    {services.map((service, index) => (
+                                                        <div key={index} className="dropdown-item" onClick={() => { setPetService(service); setShowServiceDropdown(false); }}>
+                                                            {service}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="filter-group">
+                                        <button 
+                                            className="btn btn-primary btn-next"
+                                            onClick={() => {
+                                                if (petType && location && petService) {
+                                                    setCurrentStep(2);
+                                                } else {
+                                                    alert('Please select pet type, location, and service first');
+                                                }
+                                            }}
+                                        >
+                                            Next: Date & Time <i className="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 2: Date & Time Selection */}
+                            {currentStep === 2 && (
+                                <div className="datetime-section">
+                                    <h3>Select Date & Time</h3>
+                                    <div className="filters-grid">
+                                        <div className="filter-group full-width">
+                                            <label>Preferred Date *</label>
+                                            <div className="datetime-picker">
+                                                <div className="date-input">
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="Select date" 
+                                                        value={selectedDate ? new Date(selectedDate).toLocaleDateString() : ''}
+                                                        readOnly 
+                                                        onClick={(e) => { e.stopPropagation(); toggleCalendar(); }}
+                                                    />
+                                                    <i className="fas fa-calendar"></i>
+                                                    {showCalendar && renderCalendar()}
+                                                </div>
+                                                
+                                                <div className="time-input">
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="Select time" 
+                                                        value={selectedTime}
+                                                        readOnly 
+                                                        onClick={(e) => { e.stopPropagation(); toggleTimePicker(); }}
+                                                    />
+                                                    <i className="fas fa-clock"></i>
+                                                    {showTimePicker && renderTimePicker()}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="filter-group full-width">
+                                            <div className="action-buttons">
+                                                <button 
+                                                    className="btn btn-secondary"
+                                                    onClick={() => setCurrentStep(1)}
+                                                >
+                                                    <i className="fas fa-arrow-left"></i> Back
+                                                </button>
+                                                <button 
+                                                    className="btn btn-primary"
+                                                    onClick={searchVendors}
+                                                    disabled={loading}
+                                                >
+                                                    {loading ? 'Searching...' : 'Search Services'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 3: Vendor Results */}
+                            {currentStep === 3 && searchCompleted && (
+                                <div className="vendor-results">
+                                    <div className="results-header">
+                                        <h3>Available Vendors</h3>
+                                        <p>Found {filteredVendors.length} available vendors for {petService} in {location}</p>
+                                        <button className="btn btn-outline" onClick={resetSearch}>
+                                            <i className="fas fa-refresh"></i> New Search
+                                        </button>
+                                    </div>
+
+                                    {loading ? (
+                                        <div className="loading">Searching for available vendors...</div>
+                                    ) : filteredVendors.length === 0 ? (
+                                        <div className="no-results">
+                                            <p>No vendors available for your selected date and time. Please try different options.</p>
+                                            <button className="btn btn-primary" onClick={resetSearch}>
+                                                Try Different Options
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="vendor-cards">
+                                            {filteredVendors.map(vendor => (
+                                                <div 
+                                                    key={vendor.id} 
+                                                    className="vendor-card available-vendor"
+                                                >
+                                                    <div className="vendor-header">
+                                                        <div className="vendor-name">{vendor.name}</div>
+                                                        <div className="vendor-rating">
+                                                            {'★'.repeat(Math.floor(vendor.rating))}
+                                                            {'☆'.repeat(5 - Math.floor(vendor.rating))}
+                                                            ({vendor.rating})
+                                                        </div>
+                                                    </div>
+                                                    <div className="vendor-services">
+                                                        {vendor.services.map(service => (
+                                                            <span key={service} className="vendor-service-tag">{service}</span>
+                                                        ))}
+                                                    </div>
+                                                    <div className="vendor-price">{vendor.price}</div>
+                                                    <div className="vendor-availability available">
+                                                        ✅ Available on {selectedDate} at {selectedTime}
+                                                    </div>
+                                                    <button className="btn btn-primary availbookNow-btn" onClick={() => proceedToBooking(vendor)}>
+                                                        Book Now
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<PetServicesApp />);
+    </script>
+        <script>
+        // Add dropdown functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const userDropdown = document.getElementById('userDropdown');
+            const dropdownContent = document.getElementById('dropdownContent');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const userEmail = document.getElementById('userEmail');
+
+            if (userDropdown && dropdownContent) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!userDropdown.contains(e.target) && !dropdownContent.contains(e.target)) {
+                        dropdownContent.style.display = 'none';
+                    }
+                });
+
+                // Logout functionality
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        if (window.logoutUser) {
+                            window.logoutUser();
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+
+    <style>
+        /* Add dropdown styles */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 200px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1001;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .dropdown-content span {
+            display: block;
+            padding: 8px 0;
+            color: #552c1f;
+            font-weight: 500;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 8px;
+        }
+
+        .dropdown-content a {
+            color: #dc3545;
+            text-decoration: none;
+            display: block;
+            padding: 8px 0;
+        }
+
+        .dropdown-content a:hover {
+            color: #c82333;
+        }
+    </style>
+</body>
+</html>
