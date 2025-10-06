@@ -9,9 +9,15 @@ import time
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='./frontend')
 
-# Add this after creating the Flask app
+
+# SPECIFIC ROUTE FOR ROOT - Serve index.html for '/'
+@app.route('/')
+def serve_index():
+    return send_file('./frontend/index.html')
+
+# ROUTE FOR FRONTEND 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_frontend(path):
