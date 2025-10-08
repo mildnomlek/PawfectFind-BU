@@ -582,8 +582,9 @@ const MOCK_VENDORS = [
             // Change to using URL param
             const proceedToBooking = (vendor) => {
                 // Check if user is logged in
-                const auth = window.getAuth && window.getAuth();
-                const user = auth ? auth.currentUser : null;
+                //const auth = window.getAuth && window.getAuth();
+                //const user = auth ? auth.currentUser : null;
+                const user = window.currentFirebaseUser;
                 
                 if (!user) {
                     // User not logged in - encode booking data as URL parameters
